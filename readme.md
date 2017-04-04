@@ -83,6 +83,7 @@ public class MyController {
 
 
 ## 功能
+1. 订阅方式
 主要有3中订阅方式:
 ```java
 public enum SubscribeMode {
@@ -112,6 +113,11 @@ SYNC和ASYNC模式下,timeout生效.因为是一个单独的新事务.
 才会通知boss.
 
 由此可见,通过配置不同的@Subscribe监听模式,让事件处理变得非常灵活.
+
+
+2. 优先级
+支持优先级,priority越小排序越靠前.默认=0.
+
 
 ## Spring中的事务
 **参考文章**
