@@ -137,6 +137,20 @@ SYNC和ASYNC模式下,timeout生效.因为是一个单独的新事务.
 service.myeventbus.OnlineEventHandler$$EnhancerBySpringCGLIB$$eb2b402d
 代理就是对bean的AOP增强.然后使用DaoUtils工具类也不必担心有内存泄漏.
 
+一个方法上有@Transactional标签不代表一定有事务上下文.它只会作用于方法开始到最后一个数据库操作完成.如果方法中没有
+对数据库操作,那么该方法的事务注解不生效.
+
+@Transactional标签并不一定作用到方法结束,它会在最后一个对数据库操作结束后立刻commit然后结束事务.例
+```java
+@Transactional(timeout = 1)
+public void handle(OnlineEvent event) throws InterruptedException {
+    TimeUnit.SECONDS.sleep(3);  // timeout    1
+    daoService.getUser("1");
+    // TimeUnit.SECONDS.sleep(3);  // 不会timeout   2
+}
+```
+1处的会超时,而2处不会超时.
+
 
 ## Spring AOP代理
 [http://jinnianshilongnian.iteye.com/blog/1613222](http://jinnianshilongnian.iteye.com/blog/1613222)
