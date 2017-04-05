@@ -34,51 +34,32 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
      * 否则就不invoke
      *
      * @param event
-     * @param subscribers
+     * @param subscriber
      */
-    protected void invokeSubscribers(Object event, LinkedList<Subscriber> subscribers) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            LinkedList<Subscriber> asyncSubscribers = new LinkedList<>();
-            LinkedList<Subscriber> syncSubscribers = new LinkedList<>();
-            TransactionSynchronizationManager.registerSynchronization(
-                    new SpringTxSynchronization(asyncTaskExecutor, asyncSubscribers, event));
-            TransactionSynchronizationManager.registerSynchronization(
-                    new SpringTxSynchronization(syncTaskExecutor, syncSubscribers, event));
-            for (Subscriber subscriber : subscribers) {
-                if (subscriber.getMode() == SubscribeMode.ASYNC)
-                    asyncSubscribers.addLast(subscriber);
-                else if (subscriber.getMode() == SubscribeMode.SYNC)
-                    syncSubscribers.addLast(subscriber);
-                else
-                    new EventTask(subscriber, event).run();
-            }
-        } else {
-            super.invokeSubscribers(event, subscribers);
+    protected void invokeSubscriber(Object event, Subscriber subscriber) {
+        switch (subscriber.getMode()) {
+            case ASYNC:
+                TransactionSynchronizationManager.registerSynchronization(
+                        new SpringTxSynchronization(asyncTaskExecutor, subscriber, event));
+                break;
+            case SYNC:
+                TransactionSynchronizationManager.registerSynchronization(
+                        new SpringTxSynchronization(syncTaskExecutor, subscriber, event));
+                break;
         }
     }
 
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        Class clazz = bean.getClass();
-        if (AopUtils.isAopProxy(bean) || AopUtils.isCglibProxy(bean) || AopUtils.isJdkDynamicProxy(bean)) {
-            clazz = AopUtils.getTargetClass(bean);
-        }
-        Method[] methods = clazz.getDeclaredMethods();
-        for (Method method : methods) {
-            if (method.isAnnotationPresent(Subscribe.class)) {
-                Subscribe subscribe = method.getAnnotation(Subscribe.class);
-                Class[] event = method.getParameterTypes();
-                if (event == null || event.length != 1)
-                    throw new IllegalArgumentException("event object must one and only one: " + method.getName() + " in " + clazz.getName());
-                Class eventType = event[0];
-                LinkedList<Subscriber> subscribers = retrieverCache.get(eventType);
-                if (subscribers == null) {
-                    subscribers = new LinkedList<Subscriber>();
-                    retrieverCache.put(eventType, subscribers);
-                }
-                addSubscriber(new Subscriber(bean, method, subscribe.mode(), subscribe.priority()), subscribers);
-            }
-        }
+        processBean(bean);
         return bean;
+    }
+
+    @Override
+    protected Class proxyBeanUnwrap(Object bean) {
+        if (AopUtils.isAopProxy(bean) || AopUtils.isCglibProxy(bean) || AopUtils.isJdkDynamicProxy(bean)) {
+            return AopUtils.getTargetClass(bean);
+        }
+        return bean.getClass();
     }
 
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -87,18 +68,16 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
 
     private class SpringTxSynchronization extends TransactionSynchronizationAdapter {
         private ThreadPoolExecutor taskExecutor;
-        private LinkedList<Subscriber> subscribers;
+        private Subscriber subscriber;
         private Object event;
 
         public void afterCommit() {
-            for (Subscriber subscriber : subscribers) {
-                taskExecutor.execute(new EventTask(subscriber, event));
-            }
+            taskExecutor.execute(new EventTask(subscriber, event));
         }
 
-        public SpringTxSynchronization(ThreadPoolExecutor taskExecutor, LinkedList<Subscriber> subscribers, Object event) {
+        public SpringTxSynchronization(ThreadPoolExecutor taskExecutor, Subscriber subscriber, Object event) {
             this.taskExecutor = taskExecutor;
-            this.subscribers = subscribers;
+            this.subscriber = subscriber;
             this.event = event;
         }
     }
