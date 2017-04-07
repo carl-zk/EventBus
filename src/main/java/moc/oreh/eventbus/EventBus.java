@@ -7,9 +7,9 @@ import moc.oreh.eventbus.support.Subscriber;
 import moc.oreh.eventbus.util.Assert;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -21,13 +21,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author hero on 17-4-2.
  */
 public class EventBus {
-    // TODO ConcurrentHashMap原理
-    protected static Map<Class, LinkedList<Subscriber>> retrieverCache = new ConcurrentHashMap<>(64);
+    protected static Map<Class, LinkedList<Subscriber>> retrieverCache = new HashMap<>(64);
     protected static ThreadPoolExecutor syncTaskExecutor = new ThreadPoolExecutor(1, 1, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     protected static ThreadPoolExecutor asyncTaskExecutor;
-    private static final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private static final Lock r = lock.readLock();
-    private static final Lock w = lock.writeLock();
+    private static final ReadWriteLock READ_WRITE_LOCK = new ReentrantReadWriteLock();
+    private static final Lock READ_LOCK = READ_WRITE_LOCK.readLock();
+    private static final Lock WRITE_LOCK = READ_WRITE_LOCK.writeLock();
 
     public EventBus() {
         asyncTaskExecutor = new ThreadPoolExecutor(16, 32, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
@@ -45,7 +44,7 @@ public class EventBus {
      * @param event an Event Object, can any customized class object
      */
     public void publish(Object event) {
-        r.lock();
+        READ_LOCK.lock();
         try {
             Class eventType = event.getClass();
             LinkedList<Subscriber> subscribers = retrieverCache.get(eventType);
@@ -59,7 +58,7 @@ public class EventBus {
                 }
             }
         } finally {
-            r.unlock();
+            READ_LOCK.unlock();
         }
     }
 
@@ -81,7 +80,7 @@ public class EventBus {
      */
     public void processBean(Object bean) {
         Assert.notNull(bean, "bean must not be null");
-        w.lock();
+        WRITE_LOCK.lock();
         try {
             Class clazz = proxyBeanUnwrap(bean);
             Method[] methods = clazz.getDeclaredMethods();
@@ -101,7 +100,7 @@ public class EventBus {
                 }
             }
         } finally {
-            w.unlock();
+            WRITE_LOCK.unlock();
         }
     }
 
@@ -111,7 +110,7 @@ public class EventBus {
     }
 
     public void destroy() {
-        w.lock();
+        WRITE_LOCK.lock();
         try {
             syncTaskExecutor.shutdown();
             asyncTaskExecutor.shutdown();
@@ -119,14 +118,14 @@ public class EventBus {
             while (asyncTaskExecutor.isTerminating()) ;
             retrieverCache.clear();
         } finally {
-            w.unlock();
+            WRITE_LOCK.unlock();
         }
     }
 
     public void addSubscriber(Class eventType, Object subscriber, Method handle, SubscribeMode mode, int priority) {
         Assert.notNull(subscriber, "subscriber must not be null");
         Assert.notNull(handle, "subscriber's handle method must not be null");
-        w.lock();
+        WRITE_LOCK.lock();
         try {
             LinkedList<Subscriber> subscribers = retrieverCache.get(eventType);
             if (subscribers == null) {
@@ -141,7 +140,7 @@ public class EventBus {
             }
             addSubscriberInOrder(candidate, subscribers);
         } finally {
-            w.unlock();
+            WRITE_LOCK.unlock();
         }
     }
 
@@ -157,7 +156,41 @@ public class EventBus {
         subscribers.add(location, subscriber);
     }
 
-    public void removeSubscriber() {
-        // TODO
+    public void removeSubscriber(Object subscriber, Method handle, Class eventType) {
+        Assert.notNull(subscriber, "subscriber must not be null");
+        Assert.notNull(handle, "subscriber's handle method must not be null");
+        WRITE_LOCK.lock();
+        try {
+            LinkedList<Subscriber> subscribers = retrieverCache.get(eventType);
+            if (subscribers == null || subscribers.isEmpty())
+                return;
+            Subscriber obj = new Subscriber(subscriber, handle, null, 0);
+            for (Subscriber suber : subscribers) {
+                if (suber.equals(obj)) {
+                    subscribers.remove(suber);
+                    return;
+                }
+            }
+        } finally {
+            WRITE_LOCK.unlock();
+        }
+    }
+
+    public void removeSubscriber(Object subscriber, Class eventType) {
+        Assert.notNull(subscriber, "subscriber must not be null");
+        WRITE_LOCK.lock();
+        try {
+            LinkedList<Subscriber> subscribers = retrieverCache.get(eventType);
+            if (subscribers == null || subscribers.isEmpty())
+                return;
+            for (Subscriber suber = subscribers.getLast(); suber != null; ) {
+                if (suber.subscriber.equals(subscriber)) {
+                    subscribers.remove(suber);
+                }
+                suber = subscribers.isEmpty() ? null : subscribers.getLast();
+            }
+        } finally {
+            WRITE_LOCK.unlock();
+        }
     }
 }

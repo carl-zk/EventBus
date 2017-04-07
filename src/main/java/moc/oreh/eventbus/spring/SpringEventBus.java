@@ -1,8 +1,6 @@
 package moc.oreh.eventbus.spring;
 
 import moc.oreh.eventbus.EventBus;
-import moc.oreh.eventbus.annotation.Subscribe;
-import moc.oreh.eventbus.annotation.SubscribeMode;
 import moc.oreh.eventbus.support.EventTask;
 import moc.oreh.eventbus.support.Subscriber;
 import org.springframework.aop.support.AopUtils;
@@ -11,8 +9,6 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.lang.reflect.Method;
-import java.util.LinkedList;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -54,7 +50,6 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
         return bean;
     }
 
-    @Override
     protected Class proxyBeanUnwrap(Object bean) {
         if (AopUtils.isAopProxy(bean) || AopUtils.isCglibProxy(bean) || AopUtils.isJdkDynamicProxy(bean)) {
             return AopUtils.getTargetClass(bean);

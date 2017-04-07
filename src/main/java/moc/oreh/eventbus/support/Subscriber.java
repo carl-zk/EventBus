@@ -1,7 +1,6 @@
 package moc.oreh.eventbus.support;
 
 import moc.oreh.eventbus.annotation.SubscribeMode;
-import moc.oreh.eventbus.util.Assert;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,7 +9,7 @@ import java.lang.reflect.Method;
  * Created by hero on 17-4-3.
  */
 public class Subscriber {
-    private Object subscriber;
+    public Object subscriber;
     private Method handle;
     private SubscribeMode mode;
     private int priority;
