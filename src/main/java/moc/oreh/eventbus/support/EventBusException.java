@@ -1,4 +1,4 @@
-package moc.oreh.eventbus;
+package moc.oreh.eventbus.support;
 
 /**
  * Created by hero on 17-4-5.

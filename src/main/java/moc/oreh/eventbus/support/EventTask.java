@@ -1,5 +1,6 @@
 package moc.oreh.eventbus.support;
 
+import moc.oreh.eventbus.annotation.SubscribeMode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,7 +17,9 @@ public class EventTask implements Runnable {
         try {
             subscriber.onEvent(event);
         } catch (Exception ex) {
-            logger.error("[EventTask failed]", ex);
+            logger.error("[EventBusException] task failed: " + subscriber + ", " + event, ex);
+            if (subscriber.getMode() == SubscribeMode.SYNC)
+                throw new EventBusException("publish failed.", ex);
         }
     }
 

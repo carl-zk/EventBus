@@ -10,9 +10,9 @@ import java.lang.reflect.Method;
  */
 public class Subscriber {
     public Object subscriber;
-    private Method handle;
-    private SubscribeMode mode;
-    private int priority;
+    public Method handle;
+    public SubscribeMode mode;
+    public int priority;
 
     public Subscriber(Object subscriber, Method handle, SubscribeMode mode, int priority) {
         this.subscriber = subscriber;
@@ -50,5 +50,15 @@ public class Subscriber {
         int result = subscriber.hashCode();
         result = 31 * result + handle.hashCode();
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Subscriber{" +
+                "subscriber=" + subscriber +
+                ", handle=" + handle +
+                ", mode=" + mode +
+                ", priority=" + priority +
+                '}';
     }
 }

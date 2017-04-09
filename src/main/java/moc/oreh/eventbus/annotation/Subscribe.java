@@ -11,6 +11,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Subscribe {
-    SubscribeMode mode() default SubscribeMode.FOLLOW;
+    SubscribeMode mode() default SubscribeMode.SYNC;
     int priority() default 0;    // 0 at the first
 }

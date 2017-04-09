@@ -3,6 +3,7 @@ package moc.oreh.eventbus.spring;
 import moc.oreh.eventbus.EventBus;
 import moc.oreh.eventbus.support.EventTask;
 import moc.oreh.eventbus.support.Subscriber;
+
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -33,15 +34,19 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
      * @param subscriber
      */
     protected void invokeSubscriber(Object event, Subscriber subscriber) {
-        switch (subscriber.getMode()) {
-            case ASYNC:
-                TransactionSynchronizationManager.registerSynchronization(
-                        new SpringTxSynchronization(asyncTaskExecutor, subscriber, event));
-                break;
-            case SYNC:
-                TransactionSynchronizationManager.registerSynchronization(
-                        new SpringTxSynchronization(syncTaskExecutor, subscriber, event));
-                break;
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            switch (subscriber.getMode()) {
+                case ASYNC:
+                    TransactionSynchronizationManager.registerSynchronization(
+                            new SpringTxSynchronization(asyncExecutor, subscriber, event));
+                    break;
+                case BACKGROUND:
+                    TransactionSynchronizationManager.registerSynchronization(
+                            new SpringTxSynchronization(backgroundExecutor, subscriber, event));
+                    break;
+            }
+        } else {
+            super.invokeSubscriber(event, subscriber);
         }
     }
 
@@ -62,16 +67,16 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
     }
 
     private class SpringTxSynchronization extends TransactionSynchronizationAdapter {
-        private ThreadPoolExecutor taskExecutor;
+        private ThreadPoolExecutor executor;
         private Subscriber subscriber;
         private Object event;
 
         public void afterCommit() {
-            taskExecutor.execute(new EventTask(subscriber, event));
+            executor.execute(new EventTask(subscriber, event));
         }
 
-        public SpringTxSynchronization(ThreadPoolExecutor taskExecutor, Subscriber subscriber, Object event) {
-            this.taskExecutor = taskExecutor;
+        public SpringTxSynchronization(ThreadPoolExecutor executor, Subscriber subscriber, Object event) {
+            this.executor = executor;
             this.subscriber = subscriber;
             this.event = event;
         }
