@@ -32,6 +32,7 @@ public class AppConfig {
         @Subscribe(mode = SubscribeMode.ASYNC)
         public void async(LoginEvent event) {
             System.out.println("async");
+            throw new RuntimeException("runtime ex");
         }
 
         @Subscribe(mode = SubscribeMode.BACKGROUND)

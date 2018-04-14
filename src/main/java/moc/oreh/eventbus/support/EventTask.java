@@ -17,7 +17,7 @@ public class EventTask implements Runnable {
         try {
             subscriber.onEvent(event);
         } catch (Exception e) {
-            logger.error("EventBus Task Failed: subscriber=" + subscriber + ", event=" + event, e);
+            logger.error("EventBus Task Failed: subscriber=" + subscriber + ", event=" + event.getClass().getName(), e);
             if (subscriber.getMode() == SubscribeMode.SYNC)
                 throw new EventBusException("event publish failed.", e);
         }

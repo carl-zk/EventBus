@@ -55,8 +55,8 @@ public class Subscriber {
     @Override
     public String toString() {
         return "Subscriber{" +
-                "subscriber=" + subscriber +
-                ", handle=" + handle +
+                "subscriber=" + subscriber.getClass().getName() +
+                ", handle=" + handle.getName() +
                 ", mode=" + mode +
                 ", priority=" + priority +
                 '}';
