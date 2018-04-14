@@ -38,7 +38,7 @@ public class EventBus {
         Class eventType = event.getClass();
         LinkedList<Subscriber> subscribers = retrieverCache.get(eventType);
         if (subscribers == null)
-            throw new EventBusException(event.getClass() + " unknown event");
+            throw new EventBusException("unknown event : " + event.getClass());
         for (Subscriber subscriber : subscribers) {
             if (subscriber.getMode() == SubscribeMode.SYNC) {
                 new EventTask(subscriber, event).run();
@@ -74,6 +74,7 @@ public class EventBus {
                     subscribers = new LinkedList<>();
                     retrieverCache.put(eventType, subscribers);
                 }
+                method.setAccessible(true);
                 insertSubscriber(new Subscriber(bean, method, subscribe.mode(), subscribe.priority()), subscribers);
             }
         }

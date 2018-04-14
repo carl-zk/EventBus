@@ -7,6 +7,7 @@ import moc.oreh.eventbus.support.Subscriber;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -15,6 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * Created by hero on 17-4-4.
  */
+@Component("mySpringEventBus")
 public class SpringEventBus extends EventBus implements BeanPostProcessor {
 
     public SpringEventBus() {

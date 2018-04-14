@@ -1,14 +1,14 @@
 package moc.oreh.eventbus.support;
 
 import moc.oreh.eventbus.annotation.SubscribeMode;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by hero on 17-4-3.
  */
 public class EventTask implements Runnable {
-    private Logger logger = LogManager.getLogger(EventTask.class);
+    private Logger logger = LoggerFactory.getLogger(EventTask.class);
 
     private final Subscriber subscriber;
     private final Object event;
@@ -16,10 +16,10 @@ public class EventTask implements Runnable {
     public void run() {
         try {
             subscriber.onEvent(event);
-        } catch (Exception ex) {
-            logger.error("[EventBusException] task failed: " + subscriber + ", " + event, ex);
+        } catch (Exception e) {
+            logger.error("EventBus Task Failed: subscriber=" + subscriber + ", event=" + event, e);
             if (subscriber.getMode() == SubscribeMode.SYNC)
-                throw new EventBusException("publish failed.", ex);
+                throw new EventBusException("event publish failed.", e);
         }
     }
 
