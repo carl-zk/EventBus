@@ -1,32 +1,34 @@
 > 这是个publish/subscribe框架,借鉴了spring自带的和[EventBus 源码解析](http://a.codekk.com/detail/Android/Trinea/EventBus%20%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90)
 
+简单实用的Publish/Subscribe框架，与Spring框架完美集成。
 
-## EventBus tutorial
+## Usage
 1.
 在spring项目pom.xml中引入
 ```xml
 <dependency>
-    <groupId>moc.oreh</groupId>
+    <groupId>com.github.carl-zk</groupId>
     <artifactId>event-bus</artifactId>
-    <version>1.2</version>
+    <version>1.5</version>
 </dependency>
 ```
-在applicationContext.xml文件中加入EventBus bean
+在spring配置文件applicationContext.xml中引入
 ```xml
-<bean id="springEventBus" class="moc.oreh.eventbus.spring.SpringEventBus" destroy-method="destroy">
+<bean id="springEventBus" class="eventbus.spring.SpringEventBus" destroy-method="destroy">
     <constructor-arg name="corePoolSize" value="8"/>
     <constructor-arg name="maximumPoolSize" value="32"/>
     <constructor-arg name="keepAliveTime" value="300"/>
 </bean>
 ```
+**注意：** EventBus会在 spring PostProcessor 初始化Bean之后对带有 @subscribe 标签的类进行处理，所以 EventBus 需要先于其它bean被托管。
 
 2.
 新建xxxEvent和xxxEventHandler
 ```java
-public class OnlineEvent {
+public class UserLoginEvent {
     private User user;
 
-    public OnlineEvent(User user) {
+    public UserLoginEvent(User user) {
         this.user = user;
     }
 
@@ -35,51 +37,33 @@ public class OnlineEvent {
     }
 }
 
-@Component
-public class OnlineEventHandler {
+@Service
+public class UserService {
 
-    @Transactional
     @Subscribe
-    public void fun(OnlineEvent e) {
-        System.out.println("follow you");
-        userDao.save(new User("jj", 23));
-        try {
-            int t = 9;
-            t /= 0;
-        } catch (Exception ex) {
-            throw new RuntimeException();
-        }
-    }
-
-    @Transactional(timeout=1)
-    @Subscribe(mode = SubscribeMode.SYNC)
-    public void handle(OnlineEvent event) throws InterruptedException {
-        TimeUnit.SECONDS.sleep(5);
-        System.out.print("handle event: " + event.getClass().getName() + " ---> ");
-        System.out.println(event.getUser());
+    @Transactional
+    public void onEvent(UserLoginEvent event) {
+        System.out.println("one user login " + event.getUser());
+        log(LOGIN, user);
     }
 }
 ```
 
 3.
-通过EventBus发布事件,带有Subscribe标签的EventHandler会同步/异步来处理这个事件.
+通过EventBus发布事件,带有Subscribe标签的UserService会异步来接收这个事件.
 ```java
-@Controller
-public class MyController {
+@RestController("/user")
+public class Controller {
     @Autowired
     private EventBus eventBus;
 
-    @Transactional
-    @RequestMapping("/online")
-    public User online() {
-        OnlineEvent onlineEvent = new OnlineEvent(new User("小红", 17));
-        eventBus.publish(onlineEvent);
-        return new User("xfdosa", 3);
+    @GetMapping("/login")
+    public void login() {
+        UserLoginEvent userLoginEvent = new UserLoginEvent(new User("小红", 17));
+        eventBus.publish(userLoginEvent);
     }
 }
 ```
-
-[演示代码](https://github.com/carl-zk/JavaJava/tree/master/SpringEventBus)
 
 
 ## 功能
@@ -87,14 +71,14 @@ public class MyController {
 主要有3中订阅方式:
 ```java
 public enum SubscribeMode {
-    FOLLOW,    // publisher直接调subscriber
-    SYNC,      // 交给一个单独线程
+    FOLLOW,    // 在当前线程顺序执行
+    SYNC,      // 交给单独一个后台线程
     ASYNC      // 交给一个线程池
 }
 ```
 Follow 是在当前线程中顺序执行.
 SYNC 是在另一个单独的线程中执行,所有SYNC订阅事件都会等待在这个线程的等待队列上等待执行.
-ASYNC 默认订阅模式,发布的事件由一个线程池去执行.此模式在项目中经常遇到.
+ASYNC 默认订阅模式,发布的事件由一个线程池去执行.
 
 要想用好EventBus,先要清楚spring事务的传播特性.
 
@@ -117,6 +101,25 @@ SYNC和ASYNC模式下,timeout生效.因为是一个单独的新事务.
 
 2. 优先级
 支持优先级,priority越小排序越靠前.默认=0.
+
+3. 增加订阅/取消订阅
+```java
+Method method = SmsService.class.getMethod("sendMsg", NoticeEvent.class);
+SmsService SmsService = new SmsService();
+
+eventBus.addSubscriber(NoticeEvent.class, new Subscriber(SmsService, method, SubscribeMode.ASYNC, 0));
+eventBus.publish(new NoticeEvent("hello world"));
+
+eventBus.removeSubscriber(NoticeEvent.class, new Subscriber(SmsService, method, SubscribeMode.ASYNC, 0));
+eventBus.publish(new NoticeEvent("hello world"));
+```
+
+## 贡献者
+
+First author: (@[carl-zk](https://github.com/carl-zk/EventBus))
+
+## require
+jdk 1.8+ 
 
 
 ## Spring中的事务

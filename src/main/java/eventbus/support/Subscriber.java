@@ -40,9 +40,7 @@ public class Subscriber {
 
         Subscriber that = (Subscriber) o;
 
-        if (!subscriber.equals(that.subscriber)) return false;
-        return handle.equals(that.handle);
-
+        return subscriber.equals(that.subscriber) && handle.equals(that.handle);
     }
 
     @Override

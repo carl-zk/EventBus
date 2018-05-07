@@ -53,7 +53,7 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
     }
 
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        processBean(bean);
+        super.processBean(bean);
         return bean;
     }
 
