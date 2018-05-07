@@ -1,12 +1,10 @@
-package moc.oreh.eventbus;
+package eventbus;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by hero on 14/04/2018.
@@ -16,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 public class EventBusTest {
 
     @Autowired
-    //@Qualifier("mySpringEventBus")
     EventBus eventBus;
 
     @Autowired

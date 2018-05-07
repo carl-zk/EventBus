@@ -1,6 +1,6 @@
-package moc.oreh.eventbus.support;
+package eventbus.support;
 
-import moc.oreh.eventbus.annotation.SubscribeMode;
+import eventbus.annotation.SubscribeMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

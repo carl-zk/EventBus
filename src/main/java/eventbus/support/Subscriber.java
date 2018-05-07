@@ -1,6 +1,6 @@
-package moc.oreh.eventbus.support;
+package eventbus.support;
 
-import moc.oreh.eventbus.annotation.SubscribeMode;
+import eventbus.annotation.SubscribeMode;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

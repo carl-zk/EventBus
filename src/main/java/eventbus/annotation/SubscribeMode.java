@@ -1,4 +1,4 @@
-package moc.oreh.eventbus.annotation;
+package eventbus.annotation;
 
 /**
  * 监听消息的模式

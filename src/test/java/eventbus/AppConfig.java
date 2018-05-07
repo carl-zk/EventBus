@@ -1,19 +1,16 @@
-package moc.oreh.eventbus;
+package eventbus;
 
-import moc.oreh.eventbus.annotation.Subscribe;
-import moc.oreh.eventbus.annotation.SubscribeMode;
-import org.junit.Assert;
+import eventbus.annotation.Subscribe;
+import eventbus.annotation.SubscribeMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Created by hero on 14/04/2018.
  */
 @Configuration
-@ComponentScan(basePackages = "moc.oreh.eventbus")
+@ComponentScan(basePackages = "eventbus")
 public class AppConfig {
 
     @Bean
@@ -32,7 +29,7 @@ public class AppConfig {
         @Subscribe(mode = SubscribeMode.ASYNC)
         public void async(LoginEvent event) {
             System.out.println("async");
-            throw new RuntimeException("runtime ex");
+            //  throw new RuntimeException("runtime ex");
         }
 
         @Subscribe(mode = SubscribeMode.BACKGROUND)

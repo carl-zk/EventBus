@@ -1,10 +1,11 @@
-package moc.oreh.eventbus;
+package eventbus;
 
-import moc.oreh.eventbus.annotation.Subscribe;
-import moc.oreh.eventbus.annotation.SubscribeMode;
-import moc.oreh.eventbus.support.EventBusException;
-import moc.oreh.eventbus.support.EventTask;
-import moc.oreh.eventbus.support.Subscriber;
+
+import eventbus.annotation.Subscribe;
+import eventbus.annotation.SubscribeMode;
+import eventbus.support.EventBusException;
+import eventbus.support.EventTask;
+import eventbus.support.Subscriber;
 
 import java.lang.reflect.Method;
 import java.util.LinkedList;

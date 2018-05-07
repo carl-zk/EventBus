@@ -1,9 +1,9 @@
-package moc.oreh.eventbus.spring;
+package eventbus.spring;
 
-import moc.oreh.eventbus.EventBus;
-import moc.oreh.eventbus.support.EventTask;
-import moc.oreh.eventbus.support.Subscriber;
 
+import eventbus.EventBus;
+import eventbus.support.EventTask;
+import eventbus.support.Subscriber;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -16,7 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * Created by hero on 17-4-4.
  */
-@Component("mySpringEventBus")
+@Component("springEventBus")
 public class SpringEventBus extends EventBus implements BeanPostProcessor {
 
     public SpringEventBus() {
