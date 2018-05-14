@@ -121,6 +121,47 @@ First author: (@[carl-zk](https://github.com/carl-zk/EventBus))
 ## require
 jdk 1.8+ 
 
+## Spring自带的发布/订阅系统
+```java
+public static void main(String[] args) {
+    class MailEvent extends ApplicationContextEvent {
+        String to;
+
+        public MailEvent(ApplicationContext source, String to) {
+            super(source);
+            this.to = to;
+        }
+
+        public String getTo() {
+            return to;
+        }
+    }
+
+    class MailListener implements ApplicationListener<MailEvent> {
+
+        @Override
+        public void onApplicationEvent(MailEvent event) {
+            System.out.println("catch event " + event.getTo());
+        }
+    }
+
+    @Configuration
+    class Config {
+        @Bean
+        public MailListener mailListener() {
+            return new MailListener();
+        }
+    }
+
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
+    context.publishEvent(new MailEvent(context, "小明"));
+}
+```
+
+缺点：
+1. 对每个事件必须实现一个ApplicationListener<T>类；
+2. 不能控制线程池大小和等待队列；
+
 
 ## Spring中的事务
 **参考文章**

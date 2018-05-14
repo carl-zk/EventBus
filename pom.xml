@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <version>1.5</version>
 
-    <name>EventBus</name>
+    <name>event-bus</name>
     <url>https://github.com/carl-zk/EventBus</url>
 
     <properties>
@@ -17,6 +17,17 @@
         <source.version>1.8</source.version>
         <target.version>1.8</target.version>
     </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <url>http://127.0.0.1:8081/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://127.0.0.1:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
@@ -67,9 +78,22 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
                 <configuration>
                     <source>${source.version}</source>
                     <target>${target.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>${project.artifactId}</artifactId>
+                    <packaging>${project.packaging}</packaging>
+                    <version>${project.version}</version>
+                    <file>${project.basedir}/target/${project.name}-${project.version}.${project.packaging}</file>
                 </configuration>
             </plugin>
         </plugins>
