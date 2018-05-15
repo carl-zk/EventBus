@@ -23,7 +23,7 @@ public class EventTask implements Runnable {
         }
     }
 
-    public EventTask(Subscriber subscriber, Object event) {
+    public EventTask(Object event, Subscriber subscriber) {
         this.subscriber = subscriber;
         this.event = event;
     }

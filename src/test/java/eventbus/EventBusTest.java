@@ -25,7 +25,7 @@ public class EventBusTest {
 
     @Test
     public void test() {
-        eventBus.publish(new AppConfig.LoginEvent("发布一个消息"));
+        eventBus.publish(new AppConfig.LoginEvent("小明"));
     }
 
     @Test

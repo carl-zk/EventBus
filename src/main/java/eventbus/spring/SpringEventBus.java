@@ -7,7 +7,6 @@ import eventbus.support.Subscriber;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -16,7 +15,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * Created by hero on 17-4-4.
  */
-@Component("springEventBus")
 public class SpringEventBus extends EventBus implements BeanPostProcessor {
 
     public SpringEventBus() {
@@ -35,7 +33,7 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
      * @param event
      * @param subscriber
      */
-    protected void invokeSubscriber(Object event, Subscriber subscriber) {
+    protected void handleEvent(Object event, Subscriber subscriber) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             switch (subscriber.getMode()) {
                 case ASYNC:
@@ -48,7 +46,7 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
                     break;
             }
         } else {
-            super.invokeSubscriber(event, subscriber);
+            super.handleEvent(event, subscriber);
         }
     }
 
@@ -74,7 +72,7 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
         private Object event;
 
         public void afterCommit() {
-            executor.execute(new EventTask(subscriber, event));
+            executor.execute(new EventTask(event, subscriber));
         }
 
         public SpringTxSynchronization(ThreadPoolExecutor executor, Subscriber subscriber, Object event) {

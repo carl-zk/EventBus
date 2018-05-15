@@ -2,15 +2,16 @@ package eventbus;
 
 import eventbus.annotation.Subscribe;
 import eventbus.annotation.SubscribeMode;
+import eventbus.spring.SpringEventBus;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * Created by hero on 14/04/2018.
  */
 @Configuration
-@ComponentScan(basePackages = "eventbus")
+@Import(SpringEventBus.class)
 public class AppConfig {
 
     @Bean
@@ -22,19 +23,19 @@ public class AppConfig {
 
         @Subscribe(mode = SubscribeMode.SYNC)
         public void sync(LoginEvent event) {
-            System.out.println("sync" + event.getUsername());
+            System.out.println("sync " + event.getUsername());
             //throw new RuntimeException("runtime ex");
         }
 
         @Subscribe(mode = SubscribeMode.ASYNC)
         public void async(LoginEvent event) {
-            System.out.println("async");
+            System.out.println("async " + event.username);
             //  throw new RuntimeException("runtime ex");
         }
 
         @Subscribe(mode = SubscribeMode.BACKGROUND)
         public void background(LoginEvent event) {
-            System.out.println("background");
+            System.out.println("background " + event.username);
         }
     }
 
