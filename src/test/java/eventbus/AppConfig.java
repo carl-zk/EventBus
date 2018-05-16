@@ -2,16 +2,15 @@ package eventbus;
 
 import eventbus.annotation.Subscribe;
 import eventbus.annotation.SubscribeMode;
-import eventbus.spring.SpringEventBus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ImportResource;
 
 /**
  * Created by hero on 14/04/2018.
  */
 @Configuration
-@Import(SpringEventBus.class)
+@ImportResource("classpath*:beans.xml")
 public class AppConfig {
 
     @Bean

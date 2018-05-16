@@ -55,11 +55,12 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
         return bean;
     }
 
-    protected Class proxyBeanUnwrap(Object bean) {
+    protected Class getTargetClass(Object bean) {
         if (AopUtils.isAopProxy(bean) || AopUtils.isCglibProxy(bean) || AopUtils.isJdkDynamicProxy(bean)) {
             return AopUtils.getTargetClass(bean);
+        } else {
+            return bean.getClass();
         }
-        return bean.getClass();
     }
 
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {

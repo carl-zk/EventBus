@@ -1,6 +1,5 @@
 package eventbus;
 
-
 import eventbus.annotation.Subscribe;
 import eventbus.support.EventBusException;
 import eventbus.support.EventTask;
@@ -78,7 +77,7 @@ public class EventBus {
                 new EventTask(event, subscriber).run();
                 break;
             default:
-                throw new EventBusException("unknown event bus mode : " + subscriber.getMode());
+                throw new EventBusException("wrong event bus mode : " + subscriber.getMode());
         }
     }
 
@@ -99,7 +98,7 @@ public class EventBus {
     }
 
     protected void processBean(final Object bean) {
-        Class clazz = proxyBeanUnwrap(bean);
+        Class clazz = getTargetClass(bean);
         List<Method> methods = Arrays.stream(clazz.getDeclaredMethods())
                 .filter(hasSubscriber())
                 .collect(Collectors.toList());
@@ -127,7 +126,7 @@ public class EventBus {
         return method -> null != method.getAnnotation(Subscribe.class);
     }
 
-    protected Class proxyBeanUnwrap(Object bean) {
+    protected Class getTargetClass(Object bean) {
         return bean.getClass();
     }
 
