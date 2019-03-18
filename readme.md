@@ -160,7 +160,7 @@ public static void main(String[] args) {
 
 缺点：
 1. 对每个事件必须实现一个ApplicationListener<T>类；
-2. 不能控制线程池大小和等待队列；
+2. 
 
 
 ## Spring中的事务
