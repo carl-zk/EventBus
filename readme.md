@@ -1,7 +1,7 @@
 # [EventBus](https://github.com/carl-zk/EventBus)
 EventBus is a pub/sub event bus for Spring Framework. Inspired by [EventBus 源码解析](http://a.codekk.com/detail/Android/Trinea/EventBus%20%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90).
 
-![](https://github.com/carl-zk/EventBus/eventbus.svg)
+![](https://github.com/carl-zk/EventBus/blob/master/eventbus.svg)
 
 Features
 - easy to use;
