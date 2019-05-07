@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 public @interface Subscribe {
     SubscribeMode mode() default SubscribeMode.ASYNC;
 
-    int priority() default 0;    // 0 at the first
+    int priority() default 0;
 }

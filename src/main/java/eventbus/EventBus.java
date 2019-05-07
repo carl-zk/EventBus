@@ -2,49 +2,55 @@ package eventbus;
 
 import eventbus.annotation.Subscribe;
 import eventbus.support.EventBusException;
-import eventbus.support.EventTask;
+import eventbus.support.Worker;
 import eventbus.support.Subscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * example:
- * <code>
- *
- * @Service class LogService {
- * @Subscribe(mode=SubscribeMode.ASYNC) public void log(LoginEvent event) {
- * log(event.getUsername());
- * }
- * }
- * </code>
- * `LoginEvent` 为你自定义的类,可以包含任何信息,例如 username 等.
- * <p>
- * 在 UserService 中通过 eventBus.publish(new LoginEvent("Joker")) 来发布消息, 这样订阅该类消息的 logService 就
- * 能够异步处理事件了.
+ * @author carl
  */
 public class EventBus {
-    protected Map<Class, List<Subscriber>> allSubscribers = new ConcurrentHashMap<>(16);
-    protected ThreadPoolExecutor backgroundExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-    protected ThreadPoolExecutor asyncExecutor;
+    private static Logger log = LoggerFactory.getLogger(EventBus.class);
 
-    public EventBus() {
-        asyncExecutor = new ThreadPoolExecutor(8, 64,
-                60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    protected Map<Class, List<Subscriber>> allSubscribers;
+    protected ExecutorService backgroundExecutor;
+    protected ExecutorService asyncExecutor;
+
+    {
+        allSubscribers = new ConcurrentHashMap<>(16);
+
+        ThreadPoolExecutorFactoryBean backgroundThreadFactory = new ThreadPoolExecutorFactoryBean();
+        backgroundThreadFactory.setThreadNamePrefix("event-bus-background-");
+        backgroundThreadFactory.setThreadGroupName("event-bus");
+
+        backgroundExecutor = Executors.newSingleThreadExecutor(backgroundThreadFactory);
     }
 
-    public EventBus(int corePoolSize, int maximumPoolSize, long keepAliveTime) {
-        asyncExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
-                keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    public EventBus() {
+        this(4, 8, 60);
+    }
+
+    public EventBus(int corePoolSize, int maxPoolSize, int keepAliveSeconds) {
+        ThreadPoolExecutorFactoryBean poolFactory = new ThreadPoolExecutorFactoryBean();
+
+        poolFactory.setThreadNamePrefix("event-bus-async-");
+        poolFactory.setThreadGroupName("event-bus");
+        poolFactory.setCorePoolSize(corePoolSize);
+        poolFactory.setMaxPoolSize(maxPoolSize);
+        poolFactory.setKeepAliveSeconds(keepAliveSeconds);
+
+        asyncExecutor = Executors.newCachedThreadPool(poolFactory);
     }
 
     /**
@@ -54,7 +60,7 @@ public class EventBus {
      */
     public void publish(final Object event) {
         Class eventType = requireKnownEventType(event.getClass());
-        List<Subscriber> subscribers = this.allSubscribers.get(eventType);
+        List<Subscriber> subscribers = getSubscribersByType(eventType);
         subscribers.stream().forEach(subscriber -> handleEvent(event, subscriber));
     }
 
@@ -68,25 +74,31 @@ public class EventBus {
     protected void handleEvent(Object event, Subscriber subscriber) {
         switch (subscriber.getMode()) {
             case ASYNC:
-                asyncExecutor.execute(new EventTask(event, subscriber));
+                asyncExecutor.execute(new Worker(event, subscriber));
                 break;
             case BACKGROUND:
-                backgroundExecutor.execute(new EventTask(event, subscriber));
+                backgroundExecutor.execute(new Worker(event, subscriber));
                 break;
             case SYNC:
-                new EventTask(event, subscriber).run();
+                new Worker(event, subscriber).run();
                 break;
             default:
-                throw new EventBusException("wrong event bus mode : " + subscriber.getMode());
+                log.error("EventBus wrong mode: {}", subscriber.getMode());
+                throw new EventBusException("EventBus wrong mode : " + subscriber.getMode());
         }
     }
 
-    public <T> void addSubscriber(Class<T> eventType, Subscriber subscriber) {
+    protected List<Subscriber> getSubscribersByType(Class eventType) {
         List<Subscriber> subscribers = this.allSubscribers.get(eventType);
         if (subscribers == null) {
             subscribers = new LinkedList();
             this.allSubscribers.put(eventType, subscribers);
         }
+        return subscribers;
+    }
+
+    public <T> void addSubscriber(Class<T> eventType, Subscriber subscriber) {
+        List<Subscriber> subscribers = getSubscribersByType(eventType);
         insertSubscriber(subscriber, subscribers);
     }
 
@@ -102,14 +114,10 @@ public class EventBus {
         List<Method> methods = Arrays.stream(clazz.getDeclaredMethods())
                 .filter(hasSubscriber())
                 .collect(Collectors.toList());
-        methods.stream().forEach(method -> {
+        methods.forEach(method -> {
             Subscribe subscribe = method.getAnnotation(Subscribe.class);
             Class eventType = requireStrictMethod(method);
-            List<Subscriber> subscribers = this.allSubscribers.get(eventType);
-            if (subscribers == null) {
-                subscribers = new LinkedList<>();
-                this.allSubscribers.put(eventType, subscribers);
-            }
+            List<Subscriber> subscribers = getSubscribersByType(eventType);
             method.setAccessible(true);
             insertSubscriber(new Subscriber(bean, method, subscribe.mode(), subscribe.priority()), subscribers);
         });
@@ -133,8 +141,6 @@ public class EventBus {
     public void destroy() {
         backgroundExecutor.shutdown();
         asyncExecutor.shutdown();
-        while (backgroundExecutor.isTerminating()) ;
-        while (asyncExecutor.isTerminating()) ;
         allSubscribers.clear();
     }
 

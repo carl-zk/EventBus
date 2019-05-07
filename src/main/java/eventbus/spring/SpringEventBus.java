@@ -2,59 +2,52 @@ package eventbus.spring;
 
 
 import eventbus.EventBus;
-import eventbus.support.EventTask;
+import eventbus.spring.handler.AsyncEventHandler;
+import eventbus.spring.handler.BackgroundEventHandler;
+import eventbus.spring.handler.EventHandler;
+import eventbus.spring.handler.SyncEventHandler;
 import eventbus.support.Subscriber;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
- * Created by hero on 17-4-4.
+ * @author carl
  */
+@Component
 public class SpringEventBus extends EventBus implements BeanPostProcessor {
+    private List<EventHandler> handlers = new LinkedList<>();
 
     public SpringEventBus() {
         super();
+        registerHandlers();
     }
 
-    public SpringEventBus(int corePoolSize, int maximumPoolSize, long keepAliveTime) {
-        super(corePoolSize, maximumPoolSize, keepAliveTime);
+    public SpringEventBus(int corePoolSize, int maxPoolSize, int keepAliveSeconds) {
+        super(corePoolSize, maxPoolSize, keepAliveSeconds);
+        registerHandlers();
     }
 
-    /**
-     * 加入事务判断逻辑
-     * 若是异步事件且当前存在事务上下文,必须等当前事务commit成功才invokeSubscribers,
-     * 否则就不invoke
-     *
-     * @param event
-     * @param subscriber
-     */
+    @Override
     protected void handleEvent(Object event, Subscriber subscriber) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            switch (subscriber.getMode()) {
-                case ASYNC:
-                    TransactionSynchronizationManager.registerSynchronization(
-                            new SpringTxSynchronization(asyncExecutor, subscriber, event));
-                    break;
-                case BACKGROUND:
-                    TransactionSynchronizationManager.registerSynchronization(
-                            new SpringTxSynchronization(backgroundExecutor, subscriber, event));
-                    break;
+        handlers.forEach(handler -> {
+            if (handler.supportSubscribeMode(subscriber.getMode())) {
+                handler.handle(event, subscriber);
             }
-        } else {
-            super.handleEvent(event, subscriber);
-        }
+        });
     }
 
+    @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         super.processBean(bean);
         return bean;
     }
 
+    @Override
     protected Class getTargetClass(Object bean) {
         if (AopUtils.isAopProxy(bean) || AopUtils.isCglibProxy(bean) || AopUtils.isJdkDynamicProxy(bean)) {
             return AopUtils.getTargetClass(bean);
@@ -63,23 +56,17 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
         }
     }
 
+    @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         return bean;
     }
 
-    private class SpringTxSynchronization extends TransactionSynchronizationAdapter {
-        private ThreadPoolExecutor executor;
-        private Subscriber subscriber;
-        private Object event;
-
-        public void afterCommit() {
-            executor.execute(new EventTask(event, subscriber));
-        }
-
-        public SpringTxSynchronization(ThreadPoolExecutor executor, Subscriber subscriber, Object event) {
-            this.executor = executor;
-            this.subscriber = subscriber;
-            this.event = event;
-        }
+    private void registerHandlers() {
+        AsyncEventHandler asyncEventHandler = new AsyncEventHandler(asyncExecutor);
+        SyncEventHandler syncEventHandler = new SyncEventHandler();
+        BackgroundEventHandler backgroundEventHandler = new BackgroundEventHandler(backgroundExecutor);
+        handlers.add(asyncEventHandler);
+        handlers.add(syncEventHandler);
+        handlers.add(backgroundEventHandler);
     }
 }

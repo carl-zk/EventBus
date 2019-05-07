@@ -6,13 +6,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Created by hero on 17-4-3.
+ * @author carl
  */
 public class Subscriber {
-    public Object subscriber;
-    public Method handle;
-    public SubscribeMode mode;
-    public int priority;
+    private Object subscriber;
+    private Method handle;
+    private SubscribeMode mode;
+    private int priority;
 
     public Subscriber(Object subscriber, Method handle, SubscribeMode mode, int priority) {
         this.subscriber = subscriber;
@@ -29,7 +29,7 @@ public class Subscriber {
         return priority;
     }
 
-    public void onEvent(Object event) throws InvocationTargetException, IllegalAccessException {
+    public void handle(Object event) throws InvocationTargetException, IllegalAccessException {
         handle.invoke(subscriber, event);
     }
 

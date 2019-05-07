@@ -1,7 +1,7 @@
 package eventbus.support;
 
 /**
- * Created by hero on 17-4-5.
+ * @author carl
  */
 public class EventBusException extends RuntimeException {
     private static final long serialVersionUID = 2140705946825208509L;
