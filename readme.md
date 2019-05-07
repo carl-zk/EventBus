@@ -8,7 +8,7 @@ Features
 - simple and fast;
 - support spring @Transactional;
 
-## start in 1 minis
+## Start In 1 Minis
 0. config SpringEventBus
 ```java
 @Configuration
