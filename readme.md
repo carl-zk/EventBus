@@ -1,69 +1,85 @@
-> 这是个publish/subscribe框架,借鉴了spring自带的和[EventBus 源码解析](http://a.codekk.com/detail/Android/Trinea/EventBus%20%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90)
+# [EventBus](https://github.com/carl-zk/EventBus)
+EventBus is a pub/sub event bus for Spring Framework. Inspired by [EventBus 源码解析](http://a.codekk.com/detail/Android/Trinea/EventBus%20%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90).
 
-简单实用的Publish/Subscribe框架，与Spring框架完美集成。
+![](https://github.com/carl-zk/EventBus/eventbus.svg)
 
-## Usage
-1.
-在spring项目pom.xml中引入
-```xml
-<dependency>
-    <groupId>com.github.carl-zk</groupId>
-    <artifactId>event-bus</artifactId>
-    <version>1.5</version>
-</dependency>
-```
-在spring配置文件applicationContext.xml中引入
-```xml
-<bean id="springEventBus" class="eventbus.spring.SpringEventBus" destroy-method="destroy">
-    <constructor-arg name="corePoolSize" value="8"/>
-    <constructor-arg name="maximumPoolSize" value="32"/>
-    <constructor-arg name="keepAliveTime" value="300"/>
-</bean>
-```
-**注意：** EventBus会在 spring PostProcessor 初始化Bean之后对带有 @subscribe 标签的类进行处理，所以 EventBus 需要先于其它bean被托管。
+Features
+- easy to use;
+- simple and fast;
+- support spring @Transactional;
 
-2.
-新建xxxEvent和xxxEventHandler
+## start in 1 minis
+0. config SpringEventBus
 ```java
-public class UserLoginEvent {
-    private User user;
+@Configuration
+public class EventBusConfig {
 
-    public UserLoginEvent(User user) {
-        this.user = user;
-    }
-
-    public User getUser() {
-        return user;
+    @Bean
+    public SpringEventBus eventBus() {
+        SpringEventBus eventBus = new SpringEventBus();
+        return eventBus;
     }
 }
+```
 
+1. Define Event
+```java
+class LoginEvent {
+    private String name;
+    
+    public LoginEvent(String name) {
+        this.name = name;
+    }
+    
+    public String getName() {
+        return name;
+    }
+}
+```
+
+2. Subscribe Event
+```java
 @Service
-public class UserService {
-
+class UserService {
+    
     @Subscribe
-    @Transactional
-    public void onEvent(UserLoginEvent event) {
-        System.out.println("one user login " + event.getUser());
-        log(LOGIN, user);
+    public void handle(LoginEvent loginEvent) {
+        System.out.println("user login event: " + loginEvent.getName()); 
     }
 }
 ```
 
-3.
-通过EventBus发布事件,带有Subscribe标签的UserService会异步来接收这个事件.
+3. Publish Event
 ```java
-@RestController("/user")
-public class Controller {
+@RestController
+class UserController {
     @Autowired
-    private EventBus eventBus;
-
-    @GetMapping("/login")
-    public void login() {
-        UserLoginEvent userLoginEvent = new UserLoginEvent(new User("小红", 17));
-        eventBus.publish(userLoginEvent);
+    SpringEventBus springEventBus;
+    
+    @PostMapping("/login")
+    public UserVO login(CredentialVO credentialVO) {
+        // business logical 
+        
+        springEventBus.publish(new LoginEvent("Lucy"));
+        return UserVO;
     }
 }
 ```
+
+## Add EventBus To Your Project
+### Maven
+```xml
+
+```
+
+### Build From Source Code
+```bash
+git clone git@github.com:carl-zk/EventBus.git
+cd EventBus
+mvn package
+```
+
+**注意：** EventBus会在 spring PostProcessor 初始化Bean之后对带有 @subscribe 标签的类进行处理，所以 EventBus 需要先于其它bean被托管。
 
 
 ## 功能
@@ -160,7 +176,6 @@ public static void main(String[] args) {
 
 缺点：
 1. 对每个事件必须实现一个ApplicationListener<T>类；
-2. 
 
 
 ## Spring中的事务
