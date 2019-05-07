@@ -1,9 +1,8 @@
 package eventbus.spring.handler;
 
 import eventbus.annotation.SubscribeMode;
-import eventbus.spring.handler.EventHandler;
-import eventbus.support.Worker;
 import eventbus.support.Subscriber;
+import eventbus.support.Worker;
 
 /**
  * @author carl

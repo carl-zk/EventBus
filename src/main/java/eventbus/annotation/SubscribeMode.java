@@ -18,7 +18,7 @@ public enum SubscribeMode {
     SYNC,
     /**
      * when event happens,
-     * it will put all this kind subscribers in one specific background thread to handle this.
+     * it will pull a thread from a single thread pool to let subscribers to handle this.
      */
     BACKGROUND
 }

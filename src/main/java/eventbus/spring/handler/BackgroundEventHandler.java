@@ -1,7 +1,7 @@
 package eventbus.spring.handler;
 
 import eventbus.annotation.SubscribeMode;
-import eventbus.spring.TxSynchronization;
+import eventbus.spring.tx.TxSynchronization;
 import eventbus.support.Worker;
 import eventbus.support.Subscriber;
 import org.springframework.transaction.support.TransactionSynchronizationManager;

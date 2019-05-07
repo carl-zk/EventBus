@@ -1,4 +1,4 @@
-package eventbus.spring;
+package eventbus.spring.tx;
 
 import eventbus.support.Worker;
 import eventbus.support.Subscriber;

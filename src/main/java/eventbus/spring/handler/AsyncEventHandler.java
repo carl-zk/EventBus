@@ -1,8 +1,7 @@
 package eventbus.spring.handler;
 
 import eventbus.annotation.SubscribeMode;
-import eventbus.spring.SpringEventBus;
-import eventbus.spring.TxSynchronization;
+import eventbus.spring.tx.TxSynchronization;
 import eventbus.support.Subscriber;
 import eventbus.support.Worker;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -32,10 +31,5 @@ public class AsyncEventHandler implements EventHandler {
     @Override
     public boolean supportSubscribeMode(SubscribeMode subscribeMode) {
         return SubscribeMode.ASYNC == subscribeMode;
-    }
-
-    @Override
-    public void register() {
-        SpringEventBus.register();
     }
 }

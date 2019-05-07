@@ -1,9 +1,12 @@
 package eventbus;
 
 import eventbus.annotation.SubscribeMode;
+import eventbus.common.TestConfiguration;
 import eventbus.support.Subscriber;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -11,43 +14,46 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.lang.reflect.Method;
 
 /**
- * Created by hero on 14/04/2018.
+ * @author carl
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = AppConfig.class)
+@ContextConfiguration(classes = {TestConfiguration.class})
 public class EventBusTest {
+    private Logger log = LoggerFactory.getLogger(EventBusTest.class);
 
     @Autowired
     EventBus eventBus;
 
     @Autowired
-    AppConfig.SubUserLoginEvent subUserLoginEvent;
+    TestConfiguration.LoginSubscriber loginSubscriber;
 
     @Test
-    public void test() {
-        eventBus.publish(new AppConfig.LoginEvent("小明"));
+    public void testPublish() {
+        eventBus.publish(new TestConfiguration.LoginEvent("小明"));
     }
 
     @Test
     public void addNewEventType() throws NoSuchMethodException {
-        Method method = EventBusTest.class.getMethod("processE", E.class);
+        Method method = EventBusTest.class.getMethod("anotherHandle", AnotherEvent.class);
         EventBusTest eventBusTest = new EventBusTest();
 
-        eventBus.addSubscriber(E.class, new Subscriber(eventBusTest, method, SubscribeMode.ASYNC, 0));
-        eventBus.publish(new E("hello world"));
+        Subscriber subscriber = new Subscriber(eventBusTest, method, SubscribeMode.ASYNC, 0);
 
-        eventBus.removeSubscriber(E.class, new Subscriber(eventBusTest, method, SubscribeMode.ASYNC, 0));
-        eventBus.publish(new E("hello world"));
+        eventBus.addSubscriber(AnotherEvent.class, subscriber);
+        eventBus.publish(new AnotherEvent("dynamic register new subscriber"));
+
+        eventBus.removeSubscriber(AnotherEvent.class, subscriber);
+        eventBus.publish(new AnotherEvent("dynamic remove subscriber"));
     }
 
-    public void processE(E e) {
-        System.out.println("catch new event E " + e.value);
+    public void anotherHandle(AnotherEvent anotherEvent) {
+        log.info("anotherHandle: {}", anotherEvent.value);
     }
 
-    class E {
+    class AnotherEvent {
         public String value;
 
-        public E(String value) {
+        public AnotherEvent(String value) {
             this.value = value;
         }
     }

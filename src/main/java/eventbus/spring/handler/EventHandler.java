@@ -22,9 +22,4 @@ public interface EventHandler {
      * @return
      */
     boolean supportSubscribeMode(SubscribeMode subscribeMode);
-
-    /**
-     * register self to SpringEventBus handler list
-     */
-    void register();
 }

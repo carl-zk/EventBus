@@ -1,47 +1,50 @@
-package eventbus;
+package eventbus.common;
 
 import eventbus.annotation.Subscribe;
 import eventbus.annotation.SubscribeMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Import;
 
 /**
- * Created by hero on 14/04/2018.
+ * @author carl
  */
 @Configuration
-@ImportResource("classpath*:beans.xml")
-public class AppConfig {
+@Import(EventBusConfig.class)
+public class TestConfiguration {
+    private static Logger log = LoggerFactory.getLogger(TestConfiguration.class);
 
     @Bean
-    public SubUserLoginEvent sub() {
-        return new SubUserLoginEvent();
+    public LoginSubscriber loginSubscriber() {
+        return new LoginSubscriber();
     }
 
-    static class SubUserLoginEvent {
+    public static class LoginSubscriber {
 
         @Subscribe(mode = SubscribeMode.SYNC)
         public void sync(LoginEvent event) {
-            System.out.println("sync " + event.getUsername());
+            log.info("login sync: {}", event.getUsername());
             //throw new RuntimeException("runtime ex");
         }
 
         @Subscribe(mode = SubscribeMode.ASYNC)
         public void async(LoginEvent event) {
-            System.out.println("async " + event.username);
+            log.info("login async: {}", event.getUsername());
             //  throw new RuntimeException("runtime ex");
         }
 
         @Subscribe(mode = SubscribeMode.BACKGROUND)
         public void background(LoginEvent event) {
-            System.out.println("background " + event.username);
+            log.info("login background: {}", event.getUsername());
         }
     }
 
-    static class LoginEvent {
+    public static class LoginEvent {
         private String username;
 
-        LoginEvent(String username) {
+        public LoginEvent(String username) {
             this.username = username;
         }
 

@@ -2,11 +2,15 @@ package eventbus.spring;
 
 
 import eventbus.EventBus;
+import eventbus.spring.handler.AsyncEventHandler;
+import eventbus.spring.handler.BackgroundEventHandler;
 import eventbus.spring.handler.EventHandler;
+import eventbus.spring.handler.SyncEventHandler;
 import eventbus.support.Subscriber;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -14,15 +18,18 @@ import java.util.List;
 /**
  * @author carl
  */
+@Component
 public class SpringEventBus extends EventBus implements BeanPostProcessor {
-    private static List<EventHandler> handlers = new LinkedList<>();
+    private List<EventHandler> handlers = new LinkedList<>();
 
     public SpringEventBus() {
         super();
+        registerHandlers();
     }
 
     public SpringEventBus(int corePoolSize, int maxPoolSize, int keepAliveSeconds) {
         super(corePoolSize, maxPoolSize, keepAliveSeconds);
+        registerHandlers();
     }
 
     @Override
@@ -54,9 +61,12 @@ public class SpringEventBus extends EventBus implements BeanPostProcessor {
         return bean;
     }
 
-    public static void register(EventHandler handler) {
-        synchronized (handlers) {
-            handlers.add(handler);
-        }
+    private void registerHandlers() {
+        AsyncEventHandler asyncEventHandler = new AsyncEventHandler(asyncExecutor);
+        SyncEventHandler syncEventHandler = new SyncEventHandler();
+        BackgroundEventHandler backgroundEventHandler = new BackgroundEventHandler(backgroundExecutor);
+        handlers.add(asyncEventHandler);
+        handlers.add(syncEventHandler);
+        handlers.add(backgroundEventHandler);
     }
 }

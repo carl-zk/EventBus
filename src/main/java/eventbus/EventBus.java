@@ -83,7 +83,8 @@ public class EventBus {
                 new Worker(event, subscriber).run();
                 break;
             default:
-                throw new EventBusException("wrong event bus mode : " + subscriber.getMode());
+                log.error("EventBus wrong mode: {}", subscriber.getMode());
+                throw new EventBusException("EventBus wrong mode : " + subscriber.getMode());
         }
     }
 
@@ -113,7 +114,7 @@ public class EventBus {
         List<Method> methods = Arrays.stream(clazz.getDeclaredMethods())
                 .filter(hasSubscriber())
                 .collect(Collectors.toList());
-        methods.stream().forEach(method -> {
+        methods.forEach(method -> {
             Subscribe subscribe = method.getAnnotation(Subscribe.class);
             Class eventType = requireStrictMethod(method);
             List<Subscriber> subscribers = getSubscribersByType(eventType);
