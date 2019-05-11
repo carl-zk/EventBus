@@ -1,11 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.carl-zk</groupId>
     <artifactId>event-bus</artifactId>
     <packaging>jar</packaging>
-    <version>1.5-SNAPSHOT</version>
+    <version>1.5</version>
 
     <name>event-bus</name>
     <url>https://github.com/carl-zk/EventBus</url>
@@ -33,7 +32,7 @@
         <connection>scm:git:git://github.com/dexecutor/dependent-tasks-executor.git</connection>
         <developerConnection>scm:git:git@github.com:dexecutor/dexecutor.git</developerConnection>
         <url>https://github.com/dexecutor/dependent-tasks-executor</url>
-        <tag>HEAD</tag>
+        <tag>fire</tag>
     </scm>
 
     <profiles>
