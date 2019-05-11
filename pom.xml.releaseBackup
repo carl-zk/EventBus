@@ -5,27 +5,10 @@
     <groupId>com.github.carl-zk</groupId>
     <artifactId>event-bus</artifactId>
     <packaging>jar</packaging>
-    <version>1.6-SNAPSHOT</version>
-    <description>EventBus</description>
+    <version>1.5-SNAPSHOT</version>
 
     <name>event-bus</name>
     <url>https://github.com/carl-zk/EventBus</url>
-
-    <licenses>
-        <license>
-            <name>GNU Lesser General Public License (LGPL), Version 2.1</name>
-            <url>http://www.fsf.org/licensing/licenses/lgpl.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <developers>
-        <developer>
-            <id>carl-zk</id>
-            <name>carl-zk</name>
-            <email>zxfspace@gmail.com</email>
-        </developer>
-    </developers>
 
     <properties>
         <spring.version>5.0.5.RELEASE</spring.version>
