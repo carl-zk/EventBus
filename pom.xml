@@ -4,7 +4,7 @@
     <groupId>com.github.carl-zk</groupId>
     <artifactId>event-bus</artifactId>
     <packaging>jar</packaging>
-    <version>1.5</version>
+    <version>1.6-SNAPSHOT</version>
 
     <name>event-bus</name>
     <url>https://github.com/carl-zk/EventBus</url>
@@ -32,7 +32,7 @@
         <connection>scm:git:git://github.com/dexecutor/dependent-tasks-executor.git</connection>
         <developerConnection>scm:git:git@github.com:dexecutor/dexecutor.git</developerConnection>
         <url>https://github.com/dexecutor/dependent-tasks-executor</url>
-        <tag>fire</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <profiles>
