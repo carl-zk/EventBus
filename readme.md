@@ -69,7 +69,12 @@ class UserController {
 ## Add EventBus To Your Project
 ### Maven
 ```xml
-
+<!-- https://mvnrepository.com/artifact/com.github.carl-zk/event-bus -->
+<dependency>
+    <groupId>com.github.carl-zk</groupId>
+    <artifactId>event-bus</artifactId>
+    <version>1.6</version>
+</dependency>
 ```
 
 ### Build From Source Code
